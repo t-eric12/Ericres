@@ -7,7 +7,7 @@ import time
 import sqlite3
 import hashlib
 import os
-#python.exe -m streamlit run name.py
+
 # Initialize SQLite database
 def init_db():
     conn = sqlite3.connect('portfolio.db')
@@ -70,6 +70,16 @@ def init_db():
                   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                   image BLOB)''')
     
+    # Contacts table
+    c.execute('''CREATE TABLE IF NOT EXISTS contacts
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  name TEXT,
+                  email TEXT,
+                  message TEXT,
+                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                  replied INTEGER DEFAULT 0,
+                  reply_text TEXT)''')
+    
     # Insert default admin if not exists
     try:
         hashed_password = hashlib.sha256('admin123'.encode()).hexdigest()
@@ -91,98 +101,138 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# CSS for animations and styling
+# Modern CSS styling
 def local_css():
     st.markdown("""
     <style>
+    :root {
+        --primary-color: #2962ff;
+        --secondary-color: #455a64;
+        --background-color:#c8e6c9;
+        --text-color: #212121;
+        --card-color: #ffffff;
+        --success-color: #2e7d32;
+        --warning-color: #ff6f00;
+        --error-color: #c62828;
+    }
+    
     .main {
         padding: 2rem;
+
+        background-color: var(--background-color);
     }
+    
     .stApp {
-        max-width: 1200px;
+        max-width: 1400px;
         margin: 0 auto;
-        background-color: #f5f5f5;        
+        background-color: var(--background-color);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
+    
     .title {
         text-align: center;
-        color: #1E88E5;
-        font-size: 3rem;
-        font-weight: bold;
-        margin-bottom: 1rem;
-        animation: fadeIn 1.5s;
-        background-color: #454E62;
-        color: white;
-        padding: 10px;
-        border-radius: 5px;
+        color: var(--primary-color);
+        font-size: 2.5rem;
+        font-weight: 600;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        border-bottom: 2px solid var(--primary-color);
     }
+    
     .subtitle {
         text-align: center;
-        color: #424242;
-        font-size: 1.5rem;
-        margin-bottom: 2rem;
-        animation: fadeIn 2s;
+        color: var(--secondary-color);
+        font-size: 1.2rem;
+        margin-bottom: 2.5rem;
+        font-weight: 400;
     }
+    
+    /* Modern Card Styles */
+    .modern-card {
+        background: var(--card-color);
+        padding: 1.5rem;
+        border-radius: 10px;
+        background-color: var(--danger-20);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.5rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border-left: 4px solid var(--primary-color);
+    }
+    .side-card {
+        background-color: #24fe;
+    }
+
+    .modern-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Profile Section */
     .profile-section {
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: center;
-        padding: 1rem;
-        animation: fadeIn 1s;
-        background-color: #f9f9f9;
+        padding: 2rem;
+        background: var(--card-color);
         border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         margin-bottom: 2rem;
     }
+    
     .profile-image {
         width: 200px;
         height: 200px;
         border-radius: 50%;
         object-fit: cover;
-        margin-bottom: 1rem;
-        border: 4px solid #1E88E5;
+        margin-bottom: 1.5rem;
+        border: 4px solid var(--primary-color);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
+    
+    /* Project Cards */
     .project-card {
-        background-color: white;
+        background: var(--card-color);
         border-radius: 10px;
         padding: 1.5rem;
         margin-bottom: 1.5rem;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        border-left: 4px solid var(--primary-color);
     }
+    
     .project-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
     }
+    
+    /* Skills */
     .skills-container {
-        background-color: white;
+        background: var(--card-color);
         border-radius: 10px;
         padding: 1.5rem;
         margin-bottom: 1.5rem;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        animation: fadeIn 1s;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     }
+    
+    /* Testimonials */
     .testimonial-card {
-        background-color: #f0f8ff;
+        background: var(--card-color);
         border-radius: 10px;
         padding: 1.5rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        border-left: 4px solid #1E88E5;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border-left: 4px solid var(--primary-color);
     }
-    .contact-form {
-        background-color: white;
-        border-radius: 10px;
-        padding: 2rem;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        animation: fadeIn 1s;
-    }
+    
+    /* Timeline */
     .timeline-item {
-        border-left: 2px solid #1E88E5;
+        border-left: 2px solid var(--primary-color);
         padding-left: 20px;
         padding-bottom: 20px;
         position: relative;
+        margin-bottom: 1.5rem;
     }
+    
     .timeline-item:before {
         content: '';
         position: absolute;
@@ -191,38 +241,84 @@ def local_css():
         width: 20px;
         height: 20px;
         border-radius: 50%;
-        background-color: #1E88E5;
+        background-color: var(--primary-color);
     }
+    
+    /* Social Icons */
     .social-icons {
         display: flex;
         justify-content: center;
         gap: 20px;
-        margin-top: 20px;
-    }
-    .social-icon {
-        font-size: 24px;
-        color: #1E88E5;
-        text-decoration: none;
-    }
-    .sidebar .sidebar-content {
-        background-color: #f5f5f5;
-    }
-    .post-card {
-        background-color: white;
-        border-radius: 10px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    .dashboard-card {
-        background-color: white;
-        border-radius: 10px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        text-align: center;
+        margin-top: 1.5rem;
     }
     
+    .social-icon {
+        font-size: 24px;
+        color: var(--primary-color);
+        text-decoration: none;
+        transition: color 0.3s ease;
+    }
+    
+    .social-icon:hover {
+        color: var(--secondary-color);
+    }
+    
+    /* Contact Form */
+    .contact-form {
+        background: var(--card-color);
+        border-radius: 10px;
+        padding: 2rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Dashboard Cards */
+    .dashboard-card {
+        background: var(--card-color);
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+    
+    .dashboard-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Status Badges */
+    .message-status {
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        font-weight: bold;
+        display: inline-block;
+    }
+    
+    .status-pending {
+        background: #ffecb3;
+        color: var(--warning-color);
+    }
+    
+    .status-replied {
+        background: #c8e6c9;
+        color: var(--success-color);
+    }
+    
+    /* Buttons */
+    .stButton>button {
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .stButton>button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Animations */
     @keyframes fadeIn {
         from {
             opacity: 0;
@@ -233,6 +329,24 @@ def local_css():
             transform: translateY(0);
         }
     }
+    
+    .fade-in {
+        animation: fadeIn 0.8s ease-out;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .title {
+            font-size: 2rem;
+        }
+        
+        .profile-image {
+            width: 150px;
+            height: 150px;
+        }
+    }
+
+
     </style>
     """, unsafe_allow_html=True)
 
@@ -337,14 +451,15 @@ def update_skills(skills):
 def get_projects():
     conn = sqlite3.connect('portfolio.db')
     c = conn.cursor()
-    c.execute("SELECT title, type, year, description, link, image FROM projects")
+    c.execute("SELECT id, title, type, year, description, link, image FROM projects")
     projects = [{
-        'title': row[0],
-        'type': row[1],
-        'year': row[2],
-        'description': row[3],
-        'link': row[4],
-        'image': row[5]
+        'id': row[0],
+        'title': row[1],
+        'type': row[2],
+        'year': row[3],
+        'description': row[4],
+        'link': row[5],
+        'image': row[6]
     } for row in c.fetchall()]
     conn.close()
     
@@ -368,11 +483,11 @@ def get_projects():
                 'image': None
             },
             {
-                'title': 'graduate connect and mentorship AI-powered recommendation System',
+                'title': 'Graduate Connect and Mentorship AI-powered Recommendation System',
                 'type': 'Dissertation/Final Year Project',
                 'year': 'Year 3',
-                'description': 'Researching and developing an AI system that can analyze patient symptoms and medical history to suggest potential diagnoses. Utilizing machine learning, natural language processing, and medical databases for accurate results.',
-                'link': 'https://github.com/yourusername/health-diagnosis-ai',
+                'description': 'Researching and developing an AI system that can analyze student profiles and recommend suitable mentors. Utilizing machine learning, natural language processing, and educational databases for accurate matching.',
+                'link': 'https://github.com/your-username/graduate-connect',
                 'image': None
             }
         ]
@@ -387,7 +502,7 @@ def get_projects():
                       project['description'], project['link'], project['image']))
         conn.commit()
         conn.close()
-        return default_projects
+        return [dict(id=i+1, **project) for i, project in enumerate(default_projects)]
     return projects
 
 def add_project(project):
@@ -422,8 +537,8 @@ def delete_project(project_id):
 def get_testimonials():
     conn = sqlite3.connect('portfolio.db')
     c = conn.cursor()
-    c.execute("SELECT text, author FROM testimonials")
-    testimonials = [{'text': row[0], 'author': row[1]} for row in c.fetchall()]
+    c.execute("SELECT id, text, author FROM testimonials")
+    testimonials = [{'id': row[0], 'text': row[1], 'author': row[2]} for row in c.fetchall()]
     conn.close()
     
     if not testimonials:
@@ -431,7 +546,7 @@ def get_testimonials():
         default_testimonials = [
             {
                 'text': 'An exceptionally talented student with great attention to detail. Their work on the AI project was outstanding.',
-                'author': 'mr. clement MUNYENTWARI , CEO of ikigugug group ltd'
+                'author': 'Mr. Clement MUNYENTWARI, CEO of Ikigugu Group Ltd'
             },
             {
                 'text': 'A brilliant problem solver! Their final year project shows real innovation and technical expertise.',
@@ -446,7 +561,7 @@ def get_testimonials():
                      (testimonial['text'], testimonial['author']))
         conn.commit()
         conn.close()
-        return default_testimonials
+        return [dict(id=i+1, **testimonial) for i, testimonial in enumerate(default_testimonials)]
     return testimonials
 
 def add_testimonial(testimonial):
@@ -467,8 +582,8 @@ def delete_testimonial(testimonial_id):
 def get_timeline():
     conn = sqlite3.connect('portfolio.db')
     c = conn.cursor()
-    c.execute("SELECT year, title, description FROM timeline")
-    timeline = [{'year': row[0], 'title': row[1], 'description': row[2]} for row in c.fetchall()]
+    c.execute("SELECT id, year, title, description FROM timeline")
+    timeline = [{'id': row[0], 'year': row[1], 'title': row[2], 'description': row[3]} for row in c.fetchall()]
     conn.close()
     
     if not timeline:
@@ -482,7 +597,7 @@ def get_timeline():
             {
                 'year': '2023',
                 'title': 'First Programming Competition',
-                'description': 'Participated in the ikigugug group ltd'
+                'description': 'Participated in the Ikigugu Group Ltd competition'
             },
             {
                 'year': '2024',
@@ -492,7 +607,7 @@ def get_timeline():
             {
                 'year': '2025',
                 'title': 'Dissertation Submission',
-                'description': 'Working on final year project: graduate connect and mentorship AI-powered recommendation System'
+                'description': 'Working on final year project: Graduate Connect and Mentorship AI-powered Recommendation System'
             }
         ]
         # Insert default timeline
@@ -503,7 +618,7 @@ def get_timeline():
                      (item['year'], item['title'], item['description']))
         conn.commit()
         conn.close()
-        return default_timeline
+        return [dict(id=i+1, **item) for i, item in enumerate(default_timeline)]
     return timeline
 
 def add_timeline_item(item):
@@ -575,6 +690,56 @@ def delete_post(post_id):
     conn.commit()
     conn.close()
 
+def get_contacts():
+    conn = sqlite3.connect('portfolio.db')
+    c = conn.cursor()
+    c.execute("SELECT id, name, email, message, created_at, replied, reply_text FROM contacts ORDER BY created_at DESC")
+    contacts = [{
+        'id': row[0],
+        'name': row[1],
+        'email': row[2],
+        'message': row[3],
+        'created_at': row[4],
+        'replied': row[5],
+        'reply_text': row[6]
+    } for row in c.fetchall()]
+    conn.close()
+    return contacts
+
+def add_contact(name, email, message):
+    conn = sqlite3.connect('portfolio.db')
+    c = conn.cursor()
+    c.execute("INSERT INTO contacts (name, email, message) VALUES (?, ?, ?)", 
+             (name, email, message))
+    conn.commit()
+    conn.close()
+
+def save_reply(contact_id, reply_text):
+    conn = sqlite3.connect('portfolio.db')
+    c = conn.cursor()
+    c.execute("UPDATE contacts SET replied = 1, reply_text = ? WHERE id = ?", 
+             (reply_text, contact_id))
+    conn.commit()
+    conn.close()
+
+def add_skill(skill, level):
+    conn = sqlite3.connect('portfolio.db')
+    c = conn.cursor()
+    try:
+        c.execute("INSERT INTO skills (skill, level) VALUES (?, ?)", (skill, level))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        c.execute("UPDATE skills SET level = ? WHERE skill = ?", (level, skill))
+        conn.commit()
+    conn.close()
+
+def delete_skill(skill):
+    conn = sqlite3.connect('portfolio.db')
+    c = conn.cursor()
+    c.execute("DELETE FROM skills WHERE skill = ?", (skill,))
+    conn.commit()
+    conn.close()
+
 def authenticate(username, password):
     conn = sqlite3.connect('portfolio.db')
     c = conn.cursor()
@@ -603,15 +768,11 @@ if 'timeline' not in st.session_state:
 if 'posts' not in st.session_state:
     st.session_state.posts = get_posts()
 
+if 'contacts' not in st.session_state:
+    st.session_state.contacts = get_contacts()
+
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
-
-# Initialize contacts if not already present
-if "contacts" not in st.session_state:
-    st.session_state.contacts = []
-
-# Now safe to use
-st.metric("Contacts", len(st.session_state.contacts))
 
 # Function to enable file downloads
 def get_binary_file_downloader_html(bin_file, file_label='File'):
@@ -629,34 +790,36 @@ def main_navigation():
                                          "Timeline", "Testimonials", "Contact", "Dashboard"])
     else:
         page = st.sidebar.radio("Go to", ["Home", "Posts", "Projects", "Skills & Achievements", 
-                                         "Timeline", "Testimonials", "Contact","Dashboard"])
+                                         "Timeline", "Testimonials", "Contact", "Dashboard"])
     return page
 
 page = main_navigation()
 
 # Home Page
 if page == "Home":
-    st.markdown('<h1 class="title">Digital Portfolio</h1>', unsafe_allow_html=True)
-    st.markdown(f'<h2 class="subtitle">Welcome to my professional journey</h2>', unsafe_allow_html=True)
+    st.markdown('<h1 class="title fade-in">Digital Portfolio</h1>', unsafe_allow_html=True)
+    st.markdown(f'<h2 class="subtitle fade-in">Welcome to my professional journey</h2>', unsafe_allow_html=True)
     
     col1, col2 = st.columns([1, 2])
     
     with col1:
-        st.markdown('<div class="profile-section">', unsafe_allow_html=True)
+        st.markdown('<div>', unsafe_allow_html=True)
         # Display profile image
         if st.session_state.profile['profile_pic']:
-            profile_image = Image.open(st.session_state.profile['profile_pic'])
+            try:
+                profile_image = Image.open(st.session_state.profile['profile_pic'])
+                st.image(profile_image, width=200, caption="")
+            except:
+                st.warning("Could not load profile image")
         else:
             try:
                 profile_image = Image.open("AAA.jpg")
+                st.image(profile_image, width=200, caption="")
             except:
-                profile_image = None
-        
-        if profile_image:
-            st.image(profile_image, width=200, caption="")
+                st.info("No profile image available")
         
         # Download resume button
-        resume_file = "MIS.pdf"  # You need to have this file in your project directory
+        resume_file = "MIS.pdf"
         try:
             with open(resume_file, "rb") as pdf_file:
                 PDFbyte = pdf_file.read()
@@ -664,15 +827,16 @@ if page == "Home":
                 label="Download Resume",
                 data=PDFbyte,
                 file_name="MIS.pdf",
-                mime="application/pdf"
+                mime="application/pdf",
+                key="resume_download"
             )
         except:
-            st.write("Resume PDF not available. Please upload your resume.")
+            st.warning("Resume PDF not available")
         
         st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
-        st.markdown('<div class="profile-section">', unsafe_allow_html=True)
+        st.markdown('<div >', unsafe_allow_html=True)
         st.markdown(f"# {st.session_state.profile['name']}")
         st.markdown(f"**Location**: {st.session_state.profile['location']}")
         st.markdown(f"**Phone**: {st.session_state.profile['phone']}")
@@ -687,7 +851,7 @@ if page == "Home":
             f"""
             <div class="social-icons">
                 <a href="{st.session_state.profile['github']}" target="_blank" class="social-icon">
-                    <i class="fab fa-github"></i> GitHub
+                    < class="fab fa-github"></ GitHub
                 </a>
                 <a href="{st.session_state.profile['linkedin']}" target="_blank" class="social-icon">
                     <i class="fab fa-linkedin"></i> LinkedIn
@@ -703,27 +867,28 @@ if page == "Home":
 
 # Posts Page (Blog)
 elif page == "Posts":
-    st.markdown('<h1 class="title">My Posts</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="subtitle">Sharing my thoughts and experiences</p>', unsafe_allow_html=True)
+    st.markdown('<h1 class="title fade-in">My Posts</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle fade-in">Sharing my thoughts and experiences</p>', unsafe_allow_html=True)
     
     # Display all posts
     for post in st.session_state.posts:
         st.markdown(f"""
-        <div class="post-card">
+        <div class="modern-card fade-in">
             <h2>{post['title']}</h2>
             <p><small>Posted on: {post['created_at']}</small></p>
-            <p>{post['content'][:200]}...</p>
+            {f'<img src="data:image/jpeg;base64,{base64.b64encode(post["image"]).decode()}" width="300">' if post['image'] else ''}
+            <p>{post['content'][:200]}{'...' if len(post['content']) > 200 else ''}</p>
             <a href="#post-{post['id']}">Read more</a>
         </div>
         """, unsafe_allow_html=True)
     
     # Detailed view when a post is selected
-    selected_post_id = st.query_params.get("post", [None])[0]  # Updated line
+    selected_post_id = st.query_params.get("post", [None])[0]
     if selected_post_id:
         post = get_post(int(selected_post_id))
         if post:
             st.markdown(f"""
-            <div class="post-card">
+            <div class="modern-card fade-in">
                 <h2>{post['title']}</h2>
                 <p><small>Posted on: {post['created_at']}</small></p>
                 {f'<img src="data:image/jpeg;base64,{base64.b64encode(post["image"]).decode()}" width="300">' if post['image'] else ''}
@@ -735,14 +900,14 @@ elif page == "Posts":
 
 # Projects Page
 elif page == "Projects":
-    st.markdown('<h1 class="title">My Projects</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="subtitle">Showcasing my technical journey and achievements</p>', unsafe_allow_html=True)
+    st.markdown('<h1 class="title fade-in">My Projects</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle fade-in">Showcasing my technical journey and achievements</p>', unsafe_allow_html=True)
     
     # Project filtering
     project_categories = ["All"] + list(set([project['year'] for project in st.session_state.projects])) + \
                         list(set([project['type'] for project in st.session_state.projects]))
     
-    selected_category = st.selectbox("Filter projects by:", project_categories)
+    selected_category = st.selectbox("Filter projects by:", project_categories, key="project_filter")
     
     filtered_projects = st.session_state.projects if selected_category == "All" else \
                        [project for project in st.session_state.projects 
@@ -750,7 +915,7 @@ elif page == "Projects":
     
     for project in filtered_projects:
         st.markdown(f"""
-        <div class="project-card">
+        <div class="project-card fade-in">
             <h2>{project['title']}</h2>
             <p><strong>Type:</strong> {project['type']}</p>
             <p><strong>Year:</strong> {project['year']}</p>
@@ -758,23 +923,22 @@ elif page == "Projects":
             <a href="{project['link']}" target="_blank">View Project</a>
         </div>
         """, unsafe_allow_html=True)
-       
+
 # Skills & Achievements Page
 elif page == "Skills & Achievements":
-    st.markdown('<h1 class="title">Skills & Achievements</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="title fade-in">Skills & Achievements</h1>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown('<div class="skills-container">', unsafe_allow_html=True)
+        st.markdown('<div class="skills-container fade-in">', unsafe_allow_html=True)
         st.markdown("### Technical Skills")
         for skill, level in st.session_state.skills.items():
             st.markdown(f"**{skill}**")
             st.progress(level/100)
         st.markdown('</div>', unsafe_allow_html=True)
-    
     with col2:
-        st.markdown('<div class="skills-container">', unsafe_allow_html=True)
+        st.markdown('<div class="skills-container fade-in">', unsafe_allow_html=True)
         st.markdown("### Certifications & Achievements")
         st.markdown("- **Google Data Analytics Certification**")      
         st.markdown("- **Dean's List Award for Academic Excellence**")
@@ -784,12 +948,12 @@ elif page == "Skills & Achievements":
 
 # Timeline Page
 elif page == "Timeline":
-    st.markdown('<h1 class="title">My Academic Journey</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="subtitle">A timeline of important milestones</p>', unsafe_allow_html=True)
+    st.markdown('<h1 class="title fade-in">My Academic Journey</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle fade-in">A timeline of important milestones</p>', unsafe_allow_html=True)
     
     for item in st.session_state.timeline:
         st.markdown(f"""
-        <div class="timeline-item">
+        <div class="timeline-item fade-in">
             <h3>{item['year']} - {item['title']}</h3>
             <p>{item['description']}</p>
         </div>
@@ -797,81 +961,85 @@ elif page == "Timeline":
 
 # Testimonials Page
 elif page == "Testimonials":
-    st.markdown('<h1 class="title">Testimonials</h1>', unsafe_allow_html=True)
-    st.markdown('<p class="subtitle">What others say about me</p>', unsafe_allow_html=True)
+    st.markdown('<h1 class="title fade-in">Testimonials</h1>', unsafe_allow_html=True)
+    st.markdown('<p class="subtitle fade-in">What others say about me</p>', unsafe_allow_html=True)
     
     for testimonial in st.session_state.testimonials:
         st.markdown(f"""
-        <div class="testimonial-card">
+        <div class="testimonial-card fade-in">
             <p style="font-style: italic;">"{testimonial['text']}"</p>
             <p style="text-align: right; font-weight: bold;">— {testimonial['author']}</p>
         </div>
         """, unsafe_allow_html=True)
+    
     # Add admin check before showing the add testimonial form
-    if not st.session_state.logged_in:
-      
-        st.stop()
-    # Add a new testimonial
-    st.markdown("### Add a New Testimonial")
-    with st.form("new_testimonial"):
-        new_testimonial_text = st.text_area("Testimonial")
-        new_testimonial_author = st.text_input("Author")
-        submit_testimonial = st.form_submit_button("Add Testimonial")
-        
-        if submit_testimonial and new_testimonial_text and new_testimonial_author:
-            add_testimonial({
-                'text': new_testimonial_text,
-                'author': new_testimonial_author
-            })
-            st.session_state.testimonials = get_testimonials()
-            st.success("Testimonial added successfully!")
-            time.sleep(1)
-            st.experimental_rerun()
+    if st.session_state.logged_in:
+        st.markdown("### Add a New Testimonial")
+        with st.form("new_testimonial", clear_on_submit=True):
+            new_testimonial_text = st.text_area("Testimonial", key="testimonial_text")
+            new_testimonial_author = st.text_input("Author", key="testimonial_author")
+            submit_testimonial = st.form_submit_button("Add Testimonial")
+            
+            if submit_testimonial and new_testimonial_text and new_testimonial_author:
+                add_testimonial({
+                    'text': new_testimonial_text,
+                    'author': new_testimonial_author
+                })
+                st.session_state.testimonials = get_testimonials()
+                st.success("Testimonial added successfully!")
+                time.sleep(1)
+                st.rerun()
 
 # Contact Page
 elif page == "Contact":
-    st.markdown('<h1 class="title">Contact Me</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="title fade-in">Contact Me</h1>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
-    
     with col1:
-        st.markdown('<div class="contact-form">', unsafe_allow_html=True)
+        st.markdown('<div>', unsafe_allow_html=True)
         st.markdown("### Get In Touch")
-        
-        with st.form("contact_form"):
-            name = st.text_input("Your Name")
-            email = st.text_input("Your Email")
-            message = st.text_area("Your Message")
+
+        with st.form("contact_form", clear_on_submit=True):
+            name = st.text_input("Your Name", key="contact_name")
+            email = st.text_input("Your Email", key="contact_email")
+            message = st.text_area("Your Message", key="contact_message", height=150)
             submit_button = st.form_submit_button("Send Message")
             
-            if submit_button:
+            if submit_button and name and email and message:
+                add_contact(name, email, message)
+                st.session_state.contacts = get_contacts()
                 st.success("Thank you for your message! I will get back to you soon.")
+                time.sleep(1)
+                st.rerun()
         
         st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
-        st.markdown('<div class="contact-form">', unsafe_allow_html=True)
+        st.markdown('<div class="contact-form fade-in">', unsafe_allow_html=True)
         st.markdown("### Contact Information")
         st.markdown(f"**Email:** {st.session_state.profile['email']}")
         st.markdown(f"**Phone:** {st.session_state.profile['phone']}")
         st.markdown(f"**GitHub:** [{st.session_state.profile['github'].split('/')[-1]}]({st.session_state.profile['github']})")
         st.markdown(f"**LinkedIn:** [{st.session_state.profile['linkedin'].split('/')[-1]}]({st.session_state.profile['linkedin']})")
         st.markdown("**Location:** INES-Ruhengeri, Rwanda")
+        
+        # Map
+        st.markdown("### Find Me")
+        st.markdown("""
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3987.63438675943!2d29.64657831475393!3d-1.4995369989991285!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMcKwMjknNTguMyJTIDI5wrAzOCc1Ny4xIkU!5e0!3m2!1sen!2sus!4v1620000000000!5m2!1sen!2sus" 
+        width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+        """, unsafe_allow_html=True)
+        
         st.markdown('</div>', unsafe_allow_html=True)
 
 # Dashboard Page
 elif page == "Dashboard":
-    # Add logout button to sidebar
-    if st.session_state.logged_in:
-        if st.sidebar.button("Logout"):
-            st.session_state.logged_in = False
-            st.rerun()
     # Login modal
-    if not st.session_state.logged_in and page == "Dashboard":
+    if not st.session_state.logged_in:
         with st.form("login_form"):
             st.markdown("### Admin Login")
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
+            username = st.text_input("Username", key="login_username")
+            password = st.text_input("Password", type="password", key="login_password")
             login_button = st.form_submit_button("Login")
             
             if login_button:
@@ -880,61 +1048,66 @@ elif page == "Dashboard":
                     st.rerun()
                 else:
                     st.error("Invalid username or password")
-    if not st.session_state.logged_in:
-     
         st.stop()
     
-    st.markdown('<h1 class="title">Admin Dashboard</h1>', unsafe_allow_html=True)
+    # Logout button
+    if st.sidebar.button("Logout"):
+        st.session_state.logged_in = False
+        st.rerun()
+    
+    st.markdown('<h1 class="title fade-in">Admin Dashboard</h1>', unsafe_allow_html=True)
     
     # Dashboard stats
     col1, col2, col3, col4, col5, col6 = st.columns(6)
     with col1:
-        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+        st.markdown('<div class="dashboard-card fade-in">', unsafe_allow_html=True)
         st.metric("Projects", len(st.session_state.projects))
         st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
-        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+        st.markdown('<div class="dashboard-card fade-in">', unsafe_allow_html=True)
         st.metric("Posts", len(st.session_state.posts))
         st.markdown('</div>', unsafe_allow_html=True)
     
     with col3:
-        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+        st.markdown('<div class="dashboard-card fade-in">', unsafe_allow_html=True)
         st.metric("Testimonials", len(st.session_state.testimonials))
         st.markdown('</div>', unsafe_allow_html=True)
     
     with col4:
-        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+        st.markdown('<div class="dashboard-card fade-in">', unsafe_allow_html=True)
         st.metric("Timeline Items", len(st.session_state.timeline))
         st.markdown('</div>', unsafe_allow_html=True)
+    
     with col5:
-        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+        st.markdown('<div class="dashboard-card fade-in">', unsafe_allow_html=True)
         st.metric("Skills", len(st.session_state.skills))
         st.markdown('</div>', unsafe_allow_html=True)
+    
     with col6:
-        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+        st.markdown('<div class="dashboard-card fade-in">', unsafe_allow_html=True)
         st.metric("Contacts", len(st.session_state.contacts))
-        st.markdown('</div>', unsafe_allow_html=True)        
+        st.markdown('</div>', unsafe_allow_html=True)
     
     # Management tabs
-    #tab1, tab2, tab3, tab4, tab5 = st.tabs(["Profile", "Projects", "Posts", "Testimonials", "Timeline"])
-     # Modify the Dashboard tabs to include Contact and Skills management
-    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs(["Profile", "Projects", "Posts", "Testimonials", "Timeline", "Contacts", "Skills"])
+    tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+        "Profile", "Projects", "Posts", "Testimonials", "Timeline", "Contacts", "Skills"
+    ])
 
     with tab1:
         st.markdown("### Profile Management")
         with st.form("profile_management"):
-            name = st.text_input("Full Name", st.session_state.profile['name'])
-            location = st.text_input("Location", st.session_state.profile['location'])
-            phone = st.text_input("Phone", st.session_state.profile['phone'])
-            university = st.text_input("University", st.session_state.profile['university'])
-            field = st.text_input("Field of Study", st.session_state.profile['field'])
-            bio = st.text_area("Bio", st.session_state.profile['bio'])
-            email = st.text_input("Email", st.session_state.profile['email'])
-            github = st.text_input("GitHub URL", st.session_state.profile['github'])
-            linkedin = st.text_input("LinkedIn URL", st.session_state.profile['linkedin'])
+            name = st.text_input("Full Name", st.session_state.profile['name'], key="profile_name")
+            location = st.text_input("Location", st.session_state.profile['location'], key="profile_location")
+            phone = st.text_input("Phone", st.session_state.profile['phone'], key="profile_phone")
+            university = st.text_input("University", st.session_state.profile['university'], key="profile_university")
+            field = st.text_input("Field of Study", st.session_state.profile['field'], key="profile_field")
+            bio = st.text_area("Bio", st.session_state.profile['bio'], key="profile_bio")
+            email = st.text_input("Email", st.session_state.profile['email'], key="profile_email")
+            github = st.text_input("GitHub URL", st.session_state.profile['github'], key="profile_github")
+            linkedin = st.text_input("LinkedIn URL", st.session_state.profile['linkedin'], key="profile_linkedin")
             
-            profile_pic = st.file_uploader("Upload profile picture", type=["jpg", "jpeg", "png"])
+            profile_pic = st.file_uploader("Upload profile picture", type=["jpg", "jpeg", "png"], key="profile_pic_upload")
             
             submitted = st.form_submit_button("Update Profile")
             
@@ -954,32 +1127,38 @@ elif page == "Dashboard":
                 
                 # Save profile picture if uploaded
                 if profile_pic is not None:
-                    with open("profile_pic.jpg", "wb") as f:
-                        f.write(profile_pic.getbuffer())
-                    profile_data['profile_pic'] = "profile_pic.jpg"
+                    try:
+                        with open("profile_pic.jpg", "wb") as f:
+                            f.write(profile_pic.getbuffer())
+                        profile_data['profile_pic'] = "profile_pic.jpg"
+                    except Exception as e:
+                        st.error(f"Error saving profile picture: {e}")
+                        profile_data['profile_pic'] = st.session_state.profile['profile_pic']
                 else:
                     profile_data['profile_pic'] = st.session_state.profile['profile_pic']
                 
                 update_profile(profile_data)
                 st.session_state.profile = get_profile()
                 st.success("Profile updated successfully!")
-    
+                time.sleep(1)
+                st.rerun()
+
     with tab2:
         st.markdown("### Project Management")
         
         # Add new project
         st.markdown("#### Add New Project")
-        with st.form("add_project"):
-            new_project_title = st.text_input("Title")
-            new_project_type = st.text_input("Type")
-            new_project_year = st.text_input("Year")
-            new_project_description = st.text_area("Description")
-            new_project_link = st.text_input("Link")
-            new_project_image = st.file_uploader("Project Image", type=["jpg", "jpeg", "png"])
+        with st.form("add_project", clear_on_submit=True):
+            new_project_title = st.text_input("Title", key="new_project_title")
+            new_project_type = st.text_input("Type", key="new_project_type")
+            new_project_year = st.text_input("Year", key="new_project_year")
+            new_project_description = st.text_area("Description", key="new_project_description")
+            new_project_link = st.text_input("Link", key="new_project_link")
+            new_project_image = st.file_uploader("Project Image", type=["jpg", "jpeg", "png"], key="new_project_image")
             
             submitted = st.form_submit_button("Add Project")
             
-            if submitted:
+            if submitted and new_project_title and new_project_description:
                 project = {
                     'title': new_project_title,
                     'type': new_project_type,
@@ -991,17 +1170,20 @@ elif page == "Dashboard":
                 add_project(project)
                 st.session_state.projects = get_projects()
                 st.success("Project added successfully!")
+                time.sleep(1)
+                st.rerun()
         
         # Edit/Delete projects
         st.markdown("#### Manage Existing Projects")
         for project in st.session_state.projects:
             with st.expander(project['title']):
-                with st.form(f"edit_project_{project['title']}"):
-                    edited_title = st.text_input("Title", project['title'])
-                    edited_type = st.text_input("Type", project['type'])
-                    edited_year = st.text_input("Year", project['year'])
-                    edited_description = st.text_area("Description", project['description'])
-                    edited_link = st.text_input("Link", project['link'])
+                with st.form(f"edit_project_{project['id']}"):
+                    edited_title = st.text_input("Title", project['title'], key=f"edit_title_{project['id']}")
+                    edited_type = st.text_input("Type", project['type'], key=f"edit_type_{project['id']}")
+                    edited_year = st.text_input("Year", project['year'], key=f"edit_year_{project['id']}")
+                    edited_description = st.text_area("Description", project['description'], key=f"edit_desc_{project['id']}")
+                    edited_link = st.text_input("Link", project['link'], key=f"edit_link_{project['id']}")
+                    edited_image = st.file_uploader("Update Image", type=["jpg", "jpeg", "png"], key=f"edit_image_{project['id']}")
                     
                     col1, col2 = st.columns(2)
                     with col1:
@@ -1012,31 +1194,35 @@ elif page == "Dashboard":
                                 'year': edited_year,
                                 'description': edited_description,
                                 'link': edited_link,
-                                'image': project['image']
+                                'image': edited_image.read() if edited_image else project['image']
                             }
                             update_project(project['id'], updated_project)
                             st.session_state.projects = get_projects()
                             st.success("Project updated successfully!")
+                            time.sleep(1)
+                            st.rerun()
                     
                     with col2:
                         if st.form_submit_button("Delete Project"):
                             delete_project(project['id'])
                             st.session_state.projects = get_projects()
                             st.success("Project deleted successfully!")
-    
+                            time.sleep(1)
+                            st.rerun()
+
     with tab3:
         st.markdown("### Post Management")
         
         # Add new post
         st.markdown("#### Add New Post")
-        with st.form("add_post"):
-            new_post_title = st.text_input("Title")
-            new_post_content = st.text_area("Content")
-            new_post_image = st.file_uploader("Post Image", type=["jpg", "jpeg", "png"])
+        with st.form("add_post", clear_on_submit=True):
+            new_post_title = st.text_input("Title", key="new_post_title")
+            new_post_content = st.text_area("Content", height=300, key="new_post_content")
+            new_post_image = st.file_uploader("Post Image", type=["jpg", "jpeg", "png"], key="new_post_image")
             
             submitted = st.form_submit_button("Add Post")
             
-            if submitted:
+            if submitted and new_post_title and new_post_content:
                 post = {
                     'title': new_post_title,
                     'content': new_post_content,
@@ -1045,14 +1231,17 @@ elif page == "Dashboard":
                 add_post(post)
                 st.session_state.posts = get_posts()
                 st.success("Post added successfully!")
+                time.sleep(1)
+                st.rerun()
         
         # Edit/Delete posts
         st.markdown("#### Manage Existing Posts")
         for post in st.session_state.posts:
             with st.expander(post['title']):
                 with st.form(f"edit_post_{post['id']}"):
-                    edited_title = st.text_input("Title", post['title'])
-                    edited_content = st.text_area("Content", post['content'])
+                    edited_title = st.text_input("Title", post['title'], key=f"edit_post_title_{post['id']}")
+                    edited_content = st.text_area("Content", post['content'], height=300, key=f"edit_post_content_{post['id']}")
+                    edited_image = st.file_uploader("Update Image", type=["jpg", "jpeg", "png"], key=f"edit_post_image_{post['id']}")
                     
                     col1, col2 = st.columns(2)
                     with col1:
@@ -1060,30 +1249,34 @@ elif page == "Dashboard":
                             updated_post = {
                                 'title': edited_title,
                                 'content': edited_content,
-                                'image': post['image']
+                                'image': edited_image.read() if edited_image else post['image']
                             }
                             update_post(post['id'], updated_post)
                             st.session_state.posts = get_posts()
                             st.success("Post updated successfully!")
+                            time.sleep(1)
+                            st.rerun()
                     
                     with col2:
                         if st.form_submit_button("Delete Post"):
                             delete_post(post['id'])
                             st.session_state.posts = get_posts()
                             st.success("Post deleted successfully!")
-    
+                            time.sleep(1)
+                            st.rerun()
+
     with tab4:
         st.markdown("### Testimonial Management")
         
         # Add new testimonial
         st.markdown("#### Add New Testimonial")
-        with st.form("add_testimonial"):
-            new_testimonial_text = st.text_area("Testimonial Text")
-            new_testimonial_author = st.text_input("Author")
+        with st.form("add_testimonial", clear_on_submit=True):
+            new_testimonial_text = st.text_area("Testimonial Text", key="new_testimonial_text")
+            new_testimonial_author = st.text_input("Author", key="new_testimonial_author")
             
             submitted = st.form_submit_button("Add Testimonial")
             
-            if submitted:
+            if submitted and new_testimonial_text and new_testimonial_author:
                 testimonial = {
                     'text': new_testimonial_text,
                     'author': new_testimonial_author
@@ -1091,30 +1284,34 @@ elif page == "Dashboard":
                 add_testimonial(testimonial)
                 st.session_state.testimonials = get_testimonials()
                 st.success("Testimonial added successfully!")
+                time.sleep(1)
+                st.rerun()
         
         # Delete testimonials
         st.markdown("#### Manage Existing Testimonials")
         for testimonial in st.session_state.testimonials:
             with st.expander(testimonial['author']):
                 st.markdown(f'"{testimonial["text"]}"')
-                if st.button(f"Delete Testimonial from {testimonial['author']}"):
+                if st.button(f"Delete Testimonial from {testimonial['author']}", key=f"delete_testimonial_{testimonial['id']}"):
                     delete_testimonial(testimonial['id'])
                     st.session_state.testimonials = get_testimonials()
                     st.success("Testimonial deleted successfully!")
-    
+                    time.sleep(1)
+                    st.rerun()
+
     with tab5:
         st.markdown("### Timeline Management")
         
         # Add new timeline item
         st.markdown("#### Add New Timeline Item")
-        with st.form("add_timeline_item"):
-            new_item_year = st.text_input("Year")
-            new_item_title = st.text_input("Title")
-            new_item_description = st.text_area("Description")
+        with st.form("add_timeline_item", clear_on_submit=True):
+            new_item_year = st.text_input("Year", key="new_timeline_year")
+            new_item_title = st.text_input("Title", key="new_timeline_title")
+            new_item_description = st.text_area("Description", key="new_timeline_description")
             
             submitted = st.form_submit_button("Add Timeline Item")
             
-            if submitted:
+            if submitted and new_item_year and new_item_title:
                 item = {
                     'year': new_item_year,
                     'title': new_item_title,
@@ -1123,110 +1320,97 @@ elif page == "Dashboard":
                 add_timeline_item(item)
                 st.session_state.timeline = get_timeline()
                 st.success("Timeline item added successfully!")
+                time.sleep(1)
+                st.rerun()
         
         # Delete timeline items
         st.markdown("#### Manage Existing Timeline Items")
         for item in st.session_state.timeline:
             with st.expander(f"{item['year']} - {item['title']}"):
                 st.markdown(item['description'])
-                if st.button(f"Delete {item['year']} - {item['title']}"):
+                if st.button(f"Delete {item['year']} - {item['title']}", key=f"delete_timeline_{item['id']}"):
                     delete_timeline_item(item['id'])
                     st.session_state.timeline = get_timeline()
                     st.success("Timeline item deleted successfully!")
- # Modify the get_contacts function
-        def get_contacts():
-            conn = sqlite3.connect('portfolio.db')
-            c = conn.cursor()
-            c.execute('''CREATE TABLE IF NOT EXISTS contacts
-                         (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                          name TEXT,
-                          email TEXT,
-                          message TEXT,
-                          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                          replied INTEGER DEFAULT 0)''')
-            c.execute("SELECT * FROM contacts ORDER BY created_at DESC")
-            contacts = [{
-                'id': row[0],
-                'name': row[1],
-                'email': row[2],
-                'message': row[3],
-                'created_at': row[4],
-                'replied': row[5]
-            } for row in c.fetchall()]
-            conn.close()
-            return contacts
+                    time.sleep(1)
+                    st.rerun()
 
-        def mark_contact_replied(contact_id):
-            conn = sqlite3.connect('portfolio.db')
-            c = conn.cursor()
-            c.execute("UPDATE contacts SET replied = 1 WHERE id = ?", (contact_id,))
-            conn.commit()
-            conn.close()
+    with tab6:
+        st.markdown("### Contact Messages")
+        contacts = get_contacts()
+        
+        # Statistics
+        total = len(contacts)
+        replied = sum(1 for c in contacts if c['replied'])
+        pending = total - replied
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Total Messages", total)
+        with col2:
+            st.metric("Replied", replied)
+        with col3:
+            st.metric("Pending", pending)
+        
+        # Message List
+        for contact in contacts:
+            with st.expander(
+                f"📧 From: {contact['name']} - {contact['created_at'][:16]}", 
+                expanded=not contact['replied']):
+                
+                st.markdown(f"""
+                <div class="admin-card">
+                    <p><strong>From:</strong> {contact['name']} ({contact['email']})</p>
+                    <p><strong>Message:</strong> {contact['message']}</p>
+                    <p><strong>Received:</strong> {contact['created_at']}</p>
+                    <p><strong>Status:</strong> 
+                        <span class="message-status status-{{'replied' if contact['replied'] else 'pending'}}">
+                            {f'{"Replied" if contact["replied"] else "Pending"}'}
+                        </span>
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                if contact['replied']:
+                    st.info(f"Your reply: {contact['reply_text']}")
+                else:
+                    reply_text = st.text_area("Write your reply", key=f"reply_{contact['id']}")
+                    if st.button("Send Reply", key=f"send_{contact['id']}"):
+                        save_reply(contact['id'], reply_text)
+                        st.success("Reply saved and sent!")
+                        time.sleep(1)
+                        st.rerun()
 
-        def add_skill(skill, level):
-            conn = sqlite3.connect('portfolio.db')
-            c = conn.cursor()
-            try:
-                c.execute("INSERT INTO skills (skill, level) VALUES (?, ?)", (skill, level))
-                conn.commit()
-            except sqlite3.IntegrityError:
-                c.execute("UPDATE skills SET level = ? WHERE skill = ?", (level, skill))
-                conn.commit()
-            conn.close()
-
-        def delete_skill(skill):
-            conn = sqlite3.connect('portfolio.db')
-            c = conn.cursor()
-            c.execute("DELETE FROM skills WHERE skill = ?", (skill,))
-            conn.commit()
-            conn.close()
-
-       
-        # Add these inside the Dashboard section after the Timeline tab
-        with tab6:
-            st.markdown("### Contact Messages")
-            contacts = get_contacts()
-            
-            for contact in contacts:
-                with st.expander(f"From: {contact['name']} ({contact['email']})"):
-                    st.write(f"Message: {contact['message']}")
-                    st.write(f"Received: {contact['created_at']}")
-                    status = "Replied" if contact['replied'] else "Not Replied"
-                    st.write(f"Status: {status}")
-                    
-                    if not contact['replied']:
-                        if st.button(f"Mark as Replied - {contact['id']}"):
-                            mark_contact_replied(contact['id'])
-                            st.success("Marked as replied!")
-                            time.sleep(1)
-                            st.rerun()
-
-        with tab7:
-            st.markdown("### Skills Management")
-            
-            # Add new skill
-            with st.form("add_skill"):
-                new_skill = st.text_input("Skill Name")
-                skill_level = st.slider("Skill Level", 0, 100, 50)
-                if st.form_submit_button("Add/Update Skill"):
+    with tab7:
+        st.markdown("### Skills Management")
+        
+        # Add new skill
+        with st.form("add_skill", clear_on_submit=True):
+            new_skill = st.text_input("Skill Name", key="new_skill_name")
+            skill_level = st.slider("Skill Level", 0, 100, 50, key="new_skill_level")
+            if st.form_submit_button("Add/Update Skill"):
+                if new_skill:
                     add_skill(new_skill, skill_level)
                     st.session_state.skills = get_skills()
                     st.success("Skill added/updated successfully!")
-            
-            # Manage existing skills
-            st.markdown("#### Current Skills")
-            for skill, level in st.session_state.skills.items():
-                col1, col2, col3 = st.columns([2,1,1])
-                with col1:
-                    st.write(skill)
-                with col2:
-                    st.progress(level/100)
-                with col3:
-                    if st.button(f"Delete {skill}"):
-                        delete_skill(skill)
-                        st.session_state.skills = get_skills()
-                        st.success(f"Deleted {skill}")
-                        st.rerun()
+                    time.sleep(1)
+                    st.rerun()
+        
+        # Manage existing skills
+        st.markdown("#### Current Skills")
+        for skill, level in st.session_state.skills.items():
+            col1, col2, col3 = st.columns([3, 2, 1])
+            with col1:
+                st.write(skill)
+            with col2:
+                st.progress(level/100)
+            with col3:
+                if st.button(f"Delete {skill}", key=f"delete_skill_{skill}"):
+                    delete_skill(skill)
+                    st.session_state.skills = get_skills()
+                    st.success(f"Deleted {skill}")
+                    time.sleep(1)
+                    st.rerun()
 # Footer
 st.markdown("""
 <div style="text-align: center; margin-top: 50px; padding: 20px; background-color: #f5f5f5; border-radius: 10px;">
