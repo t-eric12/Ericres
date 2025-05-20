@@ -108,7 +108,7 @@ def local_css():
     :root {
         --primary-color: #2962ff;
         --secondary-color: #455a64;
-        --background-color:#c8e6c9;
+        --background-color:skyblue;
         --text-color: #212121;
         --card-color: #ffffff;
         --success-color: #2e7d32;
@@ -851,7 +851,7 @@ if page == "Home":
             f"""
             <div class="social-icons">
                 <a href="{st.session_state.profile['github']}" target="_blank" class="social-icon">
-                    < class="fab fa-github"></ GitHub
+                    <i class="fab fa-github"></i></ GitHub
                 </a>
                 <a href="{st.session_state.profile['linkedin']}" target="_blank" class="social-icon">
                     <i class="fab fa-linkedin"></i> LinkedIn
