@@ -128,6 +128,9 @@ def local_css():
         background-color: var(--background-color);
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
+    .section[data-testid="stSidebar"] {
+        background-color: #28a745 !important; 
+    }  
     
     .title {
         text-align: center;
