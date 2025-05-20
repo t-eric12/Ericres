@@ -108,7 +108,7 @@ def local_css():
     :root {
         --primary-color: #2962ff;
         --secondary-color: #455a64;
-        --background-color: skyblue;
+        --background-color:#c8e6c9;
         --text-color: #212121;
         --card-color: #ffffff;
         --success-color: #2e7d32;
@@ -146,10 +146,7 @@ def local_css():
         margin-bottom: 2.5rem;
         font-weight: 400;
     }
-    /* Sidebar navigation background */
-section[data-testid="stSidebar"] {
-    background-color: green !important;
-}
+    
     /* Modern Card Styles */
     .modern-card {
         background: var(--card-color);
@@ -854,7 +851,7 @@ if page == "Home":
             f"""
             <div class="social-icons">
                 <a href="{st.session_state.profile['github']}" target="_blank" class="social-icon">
-                 <i class="fab fa-github"></i> GitHub
+                    < class="fab fa-github"></ GitHub
                 </a>
                 <a href="{st.session_state.profile['linkedin']}" target="_blank" class="social-icon">
                     <i class="fab fa-linkedin"></i> LinkedIn
@@ -1384,40 +1381,40 @@ elif page == "Dashboard":
                         time.sleep(1)
                         st.rerun()
 
-   with tab7:
-       st.markdown("### Skills Management")
+    with tab7:
+        st.markdown("### Skills Management")
     
-       # Reset skills button
+        # Reset skills button
         with st.form("reset_skills_form"):
-        if st.form_submit_button("Reset Skills to Default"):
-            default_skills = {
-                'Python': 75,
-                'JavaScript': 65,
-                'HTML/CSS': 80,
-                'SQL': 70,
-                'Machine Learning': 60,        
-                'Web Development': 75,
-                'Problem Solving': 85,
-            }
+            if st.form_submit_button("Reset Skills to Default"):
+                default_skills = {
+                    'Python': 75,
+                    'JavaScript': 65,
+                    'HTML/CSS': 80,
+                    'SQL': 70,
+                    'Machine Learning': 60,        
+                    'Web Development': 75,
+                    'Problem Solving': 85,
+                }
             update_skills(default_skills)
             st.session_state.skills = get_skills()
             st.success("Skills have been reset to default!")
             st.rerun()
     
-      # Add new skill
-      with st.form("add_skill", clear_on_submit=True):
-        new_skill = st.text_input("Skill Name", key="new_skill_name")
-        skill_level = st.slider("Skill Level", 0, 100, 50, key="new_skill_level")
-        if st.form_submit_button("Add/Update Skill"):
-            if new_skill:
-                add_skill(new_skill, skill_level)
-                st.session_state.skills = get_skills()
-                st.success("Skill added/updated successfully!")
-                st.rerun()
-    
-      # Manage existing skills
-      st.markdown("#### Current Skills")
-      for skill, level in st.session_state.skills.items():
+        # Add new skill
+        with st.form("add_skill", clear_on_submit=True):
+            new_skill = st.text_input("Skill Name", key="new_skill_name")
+            skill_level = st.slider("Skill Level", 0, 100, 50, key="new_skill_level")
+            if st.form_submit_button("Add/Update Skill"):
+                if new_skill:
+                    add_skill(new_skill, skill_level)
+                    st.session_state.skills = get_skills()
+                    st.success("Skill added/updated successfully!")
+                    st.rerun()
+        
+        # Manage existing skills
+    st.markdown("#### Current Skills")
+    for skill, level in st.session_state.skills.items():
         col1, col2, col3 = st.columns([3, 2, 1])
         with col1:
             st.write(f"{skill}: {level}%")
