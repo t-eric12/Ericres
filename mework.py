@@ -108,7 +108,7 @@ def local_css():
     :root {
         --primary-color: #2962ff;
         --secondary-color: #455a64;
-        --background-color:skyblue;
+        --background-color:#c8e6c9;
         --text-color: #212121;
         --card-color: #ffffff;
         --success-color: #2e7d32;
@@ -128,9 +128,6 @@ def local_css():
         background-color: var(--background-color);
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    .section[data-testid="stSidebar"] {
-        background-color: #28a745 !important; 
-    }  
     
     .title {
         text-align: center;
@@ -854,7 +851,7 @@ if page == "Home":
             f"""
             <div class="social-icons">
                 <a href="{st.session_state.profile['github']}" target="_blank" class="social-icon">
-                    <i class="fab fa-github"></i></ GitHub
+                    < class="fab fa-github"></ GitHub
                 </a>
                 <a href="{st.session_state.profile['linkedin']}" target="_blank" class="social-icon">
                     <i class="fab fa-linkedin"></i> LinkedIn
@@ -1389,7 +1386,8 @@ elif page == "Dashboard":
     
         # Reset skills button
         with st.form("reset_skills_form"):
-            if st.form_submit_button("Reset Skills to Default"):
+            reset_button = st.form_submit_button("Reset Skills to Default")
+            if reset_button:
                 default_skills = {
                     'Python': 75,
                     'JavaScript': 65,
@@ -1399,10 +1397,10 @@ elif page == "Dashboard":
                     'Web Development': 75,
                     'Problem Solving': 85,
                 }
-            update_skills(default_skills)
-            st.session_state.skills = get_skills()
-            st.success("Skills have been reset to default!")
-            st.rerun()
+                update_skills(default_skills)
+                st.session_state.skills = get_skills()
+                st.success("Skills have been reset to default!")
+                st.rerun()
     
         # Add new skill
         with st.form("add_skill", clear_on_submit=True):
