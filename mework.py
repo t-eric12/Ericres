@@ -851,7 +851,7 @@ if page == "Home":
             f"""
             <div class="social-icons">
                 <a href="{st.session_state.profile['github']}" target="_blank" class="social-icon">
-                    <i class="fab fa-github"></i></ GitHub
+                    <i class="fab fa-github"></i> GitHub
                 </a>
                 <a href="{st.session_state.profile['linkedin']}" target="_blank" class="social-icon">
                     <i class="fab fa-linkedin"></i> LinkedIn
